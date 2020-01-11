@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_PERMISSIONS_REQUEST_CODE = 10;
     private static final String TAG = "MainActivity";
     private Button btnFetch;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +41,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         btnFetch = findViewById(R.id.fetchSMS);
+        progressBar = findViewById(R.id.progressBar);
+
         btnFetch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
+                progressBar.setVisibility(View.VISIBLE);
+                Log.d(TAG, "onClick: start reading sms");
+
                 getAllSms();
+                progressBar.setVisibility(View.GONE);
+
+                Toast.makeText(MainActivity.this, "Saved in SD card..", Toast.LENGTH_SHORT).show();
             }
         });
         setSupportActionBar(toolbar);
@@ -54,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestRuntimePermission() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.READ_SMS, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.WRITE_CONTACTS},
+                new String[]{Manifest.permission.READ_SMS, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS},
                 REQUEST_PERMISSIONS_REQUEST_CODE);
     }
 
@@ -75,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                         .getColumnIndexOrThrow("address"))
                         + "\n"
                         + "msg : "
-                        + c.getColumnIndexOrThrow("body")
+                        + c.getString(c.getColumnIndexOrThrow("body"))
                         + "\n"
                         + "ID : "
                         + c.getString(c.getColumnIndexOrThrow("_id"))
