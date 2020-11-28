@@ -3,30 +3,30 @@ package com.mmutinda.smsreader;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.mmutinda.smsreader.logger.Logger;
+import android.provider.ContactsContract;
+import android.provider.Telephony;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
-import android.provider.ContactsContract;
-import android.provider.Settings;
-import android.util.Log;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.Toast;
+import com.amitshekhar.DebugDB;
+import com.mmutinda.smsreader.entities.SmsEntity;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
     private Button btnFetch;
     private ProgressBar progressBar;
 
+    private  Repository  repository;
+    private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         btnFetch = findViewById(R.id.fetchSMS);
         progressBar = findViewById(R.id.progressBar);
+
+        repository = new Repository(getApplication());
 
         btnFetch.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,18 +58,19 @@ public class MainActivity extends AppCompatActivity {
                 getAllSms();
                 progressBar.setVisibility(View.GONE);
 
-                Toast.makeText(MainActivity.this, "Saved in SD card..", Toast.LENGTH_SHORT).show();
             }
         });
         setSupportActionBar(toolbar);
 
         requestRuntimePermission();
 
+        Log.d(TAG, "onCreate: "+ DebugDB.getAddressLog());
+
     }
 
     private void requestRuntimePermission() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.READ_SMS, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS},
+                new String[]{Manifest.permission.READ_SMS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS},
                 REQUEST_PERMISSIONS_REQUEST_CODE);
     }
 
@@ -74,34 +80,64 @@ public class MainActivity extends AppCompatActivity {
         Cursor c = cr.query(message, null, null, null, null);
         startManagingCursor(c);
         int totalSMS = c.getCount();
+
+        SmsEntity smsEntity;
+        int counter = 0;
         if (c.moveToFirst()) {
-            for (int i = 0; i < totalSMS; i++) {
 
-//                Log.d("SMSss",
-//                        );
+            for (int i = 0; i < 1000; i++) { // hardcoded
+                counter += 1;
+                Log.d(TAG, "getAllSms: reading " + counter + " of " + totalSMS);
+                String smsDate = c.getString(c.getColumnIndexOrThrow(Telephony.Sms.DATE));
+                String number = c.getString(c.getColumnIndexOrThrow(Telephony.Sms.ADDRESS));
+                String body = c.getString(c.getColumnIndexOrThrow(Telephony.Sms.BODY));
+                Date dateFormat= new Date(Long.valueOf(smsDate));
 
-                String toLog = "Contact number : "
-                        + c.getString(c
-                        .getColumnIndexOrThrow("address"))
-                        + "\n"
-                        + "msg : "
-                        + c.getString(c.getColumnIndexOrThrow("body"))
-                        + "\n"
-                        + "ID : "
-                        + c.getString(c.getColumnIndexOrThrow("_id"))
-                        + "\n"
-                        + "Person : "
-                        + getContactName(
+                String formatedDate = df.format(dateFormat);
+                String type = "";
+                switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(Telephony.Sms.TYPE)))) {
+                    case Telephony.Sms.MESSAGE_TYPE_INBOX:
+                        type = "inbox";
+                        break;
+                    case Telephony.Sms.MESSAGE_TYPE_SENT:
+                        type = "sent";
+                        break;
+                    case Telephony.Sms.MESSAGE_TYPE_OUTBOX:
+                        type = "outbox";
+                        break;
+                    default:
+                        break;
+                }
+
+                if (
+                        number.equalsIgnoreCase("Safaricom")
+                        || number.equalsIgnoreCase("CoopBank")
+                        || number.equalsIgnoreCase("MPESA")
+                ) {
+                    c.moveToNext();
+                    continue;
+                }
+
+                smsEntity = new SmsEntity();
+                smsEntity.setType(type);
+                smsEntity.setTimestamp(formatedDate);
+                smsEntity.set_id(c.getString(c.getColumnIndexOrThrow("_id")));
+                smsEntity.setAddress(number);
+                smsEntity.setBody(body);
+                smsEntity.setContactName(getContactName(
                         getApplicationContext(),
                         c.getString(c
-                                .getColumnIndexOrThrow("address")));
-                Logger.log(toLog);
+                                .getColumnIndexOrThrow("address"))));
 
+                repository.insertSingleSms(smsEntity);
                 c.moveToNext();
             }
         }
         c.close();
         Log.d(TAG, "getAllSms: Complete");
+        Log.d(TAG, "Welcome");
+        Toast.makeText(this, "Welcome", Toast.LENGTH_SHORT).show();
+
 
     }
 
