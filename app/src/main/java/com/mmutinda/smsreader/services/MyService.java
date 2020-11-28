@@ -1,6 +1,5 @@
 package com.mmutinda.smsreader.services;
 
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.Service;
 import android.content.ContentResolver;
@@ -13,9 +12,7 @@ import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.mmutinda.smsreader.Config;
@@ -28,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MyService extends IntentService {
+public class MyService extends Service {
 
     private Repository repository;
     private static final String TAG = "MyService";
@@ -37,21 +34,20 @@ public class MyService extends IntentService {
 
     public static final int NOTIFICATION_ID = 200;
 
-    public MyService() {
-        super("MyService");
-    }
+
 
     @Override
     public void onCreate() {
         super.onCreate();
         repository = new Repository(getApplication());
-        startForeground(NOTIFICATION_ID, buildNotification());
+
     }
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         getAllSms();
+        startForeground(NOTIFICATION_ID, buildNotification());
         return START_STICKY;
     }
 
@@ -60,13 +56,9 @@ public class MyService extends IntentService {
         return  null;
     }
 
-    @Override
-    protected void onHandleIntent(@Nullable Intent intent) {
 
-    }
 
     private Notification buildNotification() {
-
 
         // Create the persistent notification
         builder = new NotificationCompat.Builder(this, Config.TRACKER_CHANNEL);
@@ -82,8 +74,6 @@ public class MyService extends IntentService {
         }
 
         return builder.build();
-
-
     }
 
     public void getAllSms() {
@@ -98,7 +88,7 @@ public class MyService extends IntentService {
         int counter = 0;
         if (c.moveToFirst()) {
 
-            for (int i = 0; i < 2000; i++) { // hardcoded
+            for (int i = 0; i < totalSMS; i++) { // hardcoded
                 counter += 1;
                 Log.d(TAG, "getAllSms: reading " + counter + " of " + totalSMS);
                 String smsDate = c.getString(c.getColumnIndexOrThrow(Telephony.Sms.DATE));
@@ -137,14 +127,14 @@ public class MyService extends IntentService {
                 smsEntity.set_id(c.getString(c.getColumnIndexOrThrow("_id")));
                 smsEntity.setAddress(number);
                 smsEntity.setBody(body);
-                smsEntity.setContactName(getContactName(
-                        getApplicationContext(),
-                        c.getString(c
-                                .getColumnIndexOrThrow("address"))));
+//                smsEntity.setContactName(getContactName(
+//                        getApplicationContext(),
+//                        c.getString(c
+//                                .getColumnIndexOrThrow("address"))));
 
                 smsEntities.add(smsEntity);
                 if (counter % 200 == 0) {
-//                    repository.insertManySms(smsEntities);
+                    repository.insertManySms(smsEntities);
                     smsEntities = new ArrayList<>();
                 }
 
