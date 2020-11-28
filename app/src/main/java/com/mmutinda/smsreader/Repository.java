@@ -69,4 +69,8 @@ public class Repository {
         }
 
     }
+
+    public List<SmsEntity> getUnsyncedDataSynchronously() {
+        return smsDao.getAll();
+    }
 }

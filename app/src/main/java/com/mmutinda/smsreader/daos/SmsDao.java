@@ -19,7 +19,7 @@ public abstract class SmsDao {
 
     private static final String TAG = "SmsDao";
 
-    @Query("SELECT * FROM tb_sms")
+    @Query("SELECT * FROM tb_sms where status = 0 LIMIT 10")
     public abstract List<SmsEntity> getAll();
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

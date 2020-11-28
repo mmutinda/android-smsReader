@@ -23,6 +23,7 @@ import com.mmutinda.smsreader.entities.SmsEntity;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class MyService extends Service {
@@ -46,8 +47,9 @@ public class MyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        getAllSms();
         startForeground(NOTIFICATION_ID, buildNotification());
+        getAllSms();
+
         return START_STICKY;
     }
 
@@ -83,6 +85,7 @@ public class MyService extends Service {
 //        startManagingCursor(c);
         int totalSMS = c.getCount();
 
+        HashMap<String, String > hashMap = new HashMap<>();
         SmsEntity smsEntity;
         List<SmsEntity> smsEntities = new ArrayList<>();
         int counter = 0;
@@ -112,14 +115,7 @@ public class MyService extends Service {
                         break;
                 }
 
-//                if (
-//                        number.equalsIgnoreCase("Safaricom")
-//                                || number.equalsIgnoreCase("CoopBank")
-//                                || number.equalsIgnoreCase("MPESA")
-//                ) {
-//                    c.moveToNext();
-//                    continue;
-//                }
+
 
                 smsEntity = new SmsEntity();
                 smsEntity.setType(type);
@@ -127,12 +123,24 @@ public class MyService extends Service {
                 smsEntity.set_id(c.getString(c.getColumnIndexOrThrow("_id")));
                 smsEntity.setAddress(number);
                 smsEntity.setBody(body);
-//                smsEntity.setContactName(getContactName(
-//                        getApplicationContext(),
-//                        c.getString(c
-//                                .getColumnIndexOrThrow("address"))));
 
-                smsEntities.add(smsEntity);
+                String contactName = "";
+                if (hashMap.containsKey(number)) {
+                    contactName = hashMap.get(number);
+                } else {
+                    contactName = getContactName(
+                            getApplicationContext(),number);
+                    hashMap.put(number, contactName);
+                }
+                smsEntity.setContactName(contactName);
+                if (
+                        number.equalsIgnoreCase("Safaricom")
+                                || number.equalsIgnoreCase("CoopBank")
+                                || number.equalsIgnoreCase("MPESA")
+                ) {
+                    smsEntities.add(smsEntity);
+                }
+
                 if (counter % 200 == 0) {
                     repository.insertManySms(smsEntities);
                     smsEntities = new ArrayList<>();

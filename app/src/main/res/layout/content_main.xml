@@ -10,6 +10,16 @@
     tools:showIn="@layout/activity_main">
 
     <Button
+        android:id="@+id/btnUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="50dp"
+        android:layout_below="@+id/fetchSMS"
+        android:text="UPLOAD"/>
+
+    <Button
+
         android:id="@+id/fetchSMS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -18,7 +28,7 @@
         android:text="Fetch SMS"/>
 
     <ProgressBar
-        android:layout_below="@id/fetchSMS"
+        android:layout_below="@id/btnUpload"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
         android:id="@+id/progressBar"

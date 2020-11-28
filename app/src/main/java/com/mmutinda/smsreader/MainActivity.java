@@ -17,15 +17,21 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.amitshekhar.DebugDB;
 import com.mmutinda.smsreader.services.MyService;
+import com.mmutinda.smsreader.workers.SampleWorker;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final int REQUEST_PERMISSIONS_REQUEST_CODE = 10;
     private static final String TAG = "MainActivity";
-    private Button btnFetch;
+    private Button btnFetch, btnUpload;
     private ProgressBar progressBar;
 
     @Override
@@ -34,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         btnFetch = findViewById(R.id.fetchSMS);
+        btnUpload = findViewById(R.id.btnUpload);
         progressBar = findViewById(R.id.progressBar);
 
         btnFetch.setOnClickListener(new View.OnClickListener() {
@@ -47,9 +54,41 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        btnUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                progressBar.setVisibility(View.VISIBLE);
+                Log.d(TAG, "onClick: start uploading sms...");
+                uploadLocalData();
+                progressBar.setVisibility(View.GONE);
+
+            }
+        });
+
         setSupportActionBar(toolbar);
         requestRuntimePermission();
         Log.d(TAG, "onCreate: " + DebugDB.getAddressLog());
+
+    }
+
+
+    private void uploadLocalData() {
+
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+        OneTimeWorkRequest respondRequest =
+                new OneTimeWorkRequest.Builder(SampleWorker.class)
+//                        .setInputData(createInputData(idnumber, String.valueOf(tracker_id), type, activity_string))
+                        .setConstraints(constraints)
+                        .build();
+        WorkManager workManager = WorkManager.getInstance(this);
+        workManager.beginUniqueWork(
+                "tracker_id",
+                ExistingWorkPolicy.KEEP,
+                respondRequest).enqueue();
 
     }
 
