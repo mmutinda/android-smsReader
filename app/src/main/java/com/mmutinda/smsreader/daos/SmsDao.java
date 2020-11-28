@@ -1,29 +1,44 @@
 package com.mmutinda.smsreader.daos;
 
 
+import android.util.Log;
+
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 
 import com.mmutinda.smsreader.entities.SmsEntity;
 
 import java.util.List;
 
 @Dao
-public interface SmsDao {
+public abstract class SmsDao {
+
+    private static final String TAG = "SmsDao";
 
     @Query("SELECT * FROM tb_sms")
-    List<SmsEntity> getAll();
+    public abstract List<SmsEntity> getAll();
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insertAll(List<SmsEntity> users);
+    public abstract void insertAll(List<SmsEntity> users);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insert(SmsEntity users);
+    public abstract void insertOne(SmsEntity users);
+
+    @Transaction
+    public void insert(SmsEntity smsEntity) {
+        try {
+            insertOne(smsEntity);
+        } catch (Exception e) {
+            Log.d(TAG, "insert: "+ e.getMessage());
+        }
+
+    }
 
     @Delete
-    void delete(SmsEntity user);
+    public abstract void delete(SmsEntity user);
 }
 
