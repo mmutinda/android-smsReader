@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.google.gson.Gson;
 import com.mmutinda.smsreader.Config;
 import com.mmutinda.smsreader.Repository;
 import com.mmutinda.smsreader.entities.SmsEntity;
@@ -45,27 +44,30 @@ public class SampleWorker extends Worker {
         Repository repository = new Repository((Application) getApplicationContext());
         List<SmsEntity> smsEntities = repository.getUnsyncedDataSynchronously();
         Log.d(TAG, "doWork: " + smsEntities.size());
-        JSONObject jsonObjectRequest = new JSONObject();
+
         JSONArray jsonArray = new JSONArray();
-//        for (SmsEntity e : smsEntities) {
-//            try {
-//                jsonObjectRequest.put("_id", e.get_id());
-//                jsonObjectRequest.put("address", e.getAddress());
-//                jsonObjectRequest.put("body", e.getBody());
-//                jsonObjectRequest.put("contactName", e.getContactName());
-//                jsonObjectRequest.put("timestamp", e.getTimestamp());
-//                jsonObjectRequest.put("type", e.getType());
-//                jsonObjectRequest.put("created_at", df.format(new Date()));
-//                jsonArray.put(jsonObjectRequest);
-//
-//            } catch (JSONException eex) {
-//                Log.d(TAG, "doWork: " + eex.getMessage());
-//            }
-//        }
-        Gson gson = new Gson();
+        for (int i = 0; i < smsEntities.size(); i++) {
+            try {
+
+                JSONObject jsonObjectRequest = new JSONObject();
+                SmsEntity e = smsEntities.get(i);
+                jsonObjectRequest.put("_id", e.get_id());
+                jsonObjectRequest.put("address", e.getAddress());
+                jsonObjectRequest.put("body", e.getBody());
+                jsonObjectRequest.put("contactName", e.getContactName());
+                jsonObjectRequest.put("timestamp", e.getTimestamp());
+                jsonObjectRequest.put("type", e.getType());
+                jsonObjectRequest.put("created_at", df.format(new Date()));
+                jsonArray.put(i, jsonObjectRequest);
+
+            } catch (JSONException eex) {
+                Log.d(TAG, "doWork: " + eex.getMessage());
+            }
+        }
+
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = new FormBody.Builder()
-                .add("data", gson.toJson(smsEntities))
+                .add("data", jsonArray.toString())
                 .build();
 
 
@@ -80,6 +82,8 @@ public class SampleWorker extends Worker {
             JSONObject respObj = new JSONObject(res);
             if (respObj.getString("error").equals("false")) {
                 Log.d(TAG, "doWork: upload complete");
+                // update all as synced...
+                repository.updateAllToSynced();
             }
 
             return Result.success();

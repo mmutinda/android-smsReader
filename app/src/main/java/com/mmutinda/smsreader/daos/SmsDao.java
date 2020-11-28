@@ -19,11 +19,15 @@ public abstract class SmsDao {
 
     private static final String TAG = "SmsDao";
 
-    @Query("SELECT * FROM tb_sms where status = 0 LIMIT 10")
+    @Query("SELECT * FROM tb_sms where status = 0")
     public abstract List<SmsEntity> getAll();
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insertAll(List<SmsEntity> users);
+
+
+    @Query("UPDATE  tb_sms SET status = 1")
+    public abstract  void updateall();
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insertOne(SmsEntity users);

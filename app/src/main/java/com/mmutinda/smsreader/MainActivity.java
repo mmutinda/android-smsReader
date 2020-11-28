@@ -1,7 +1,10 @@
 package com.mmutinda.smsreader;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,12 +30,25 @@ import com.amitshekhar.DebugDB;
 import com.mmutinda.smsreader.services.MyService;
 import com.mmutinda.smsreader.workers.SampleWorker;
 
+import java.util.HashMap;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final int REQUEST_PERMISSIONS_REQUEST_CODE = 10;
     private static final String TAG = "MainActivity";
-    private Button btnFetch, btnUpload;
+    private Button btnFetch;
     private ProgressBar progressBar;
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("stop")) {
+                Toast.makeText(context, "Something went wrong on this device!! Cant start", Toast.LENGTH_LONG).show();
+                progressBar.setVisibility(View.GONE);
+
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,29 +56,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         btnFetch = findViewById(R.id.fetchSMS);
-        btnUpload = findViewById(R.id.btnUpload);
         progressBar = findViewById(R.id.progressBar);
+
+        registerReceiver(receiver, new IntentFilter("stop"));
 
         btnFetch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                progressBar.setVisibility(View.VISIBLE);
-                Log.d(TAG, "onClick: start reading sms");
-                startTrackerService();
-                progressBar.setVisibility(View.GONE);
+                if( checkPermission1() && checkPermission2()) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "onClick: start reading sms");
+                    startTrackerService();
+                } else {
+                    Toast.makeText(MainActivity.this, "Enable requested permissions to continue", Toast.LENGTH_LONG).show();
+                }
 
-            }
-        });
-
-        btnUpload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                progressBar.setVisibility(View.VISIBLE);
-                Log.d(TAG, "onClick: start uploading sms...");
-                uploadLocalData();
-                progressBar.setVisibility(View.GONE);
 
             }
         });
@@ -73,23 +82,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Returns the current state of the permissions needed.
+     */
+    private boolean checkPermission1() {
+        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.READ_SMS);
+    }
+    /**
+     * Returns the current state of the permissions needed.
+     */
+    private boolean checkPermission2() {
+        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+    }
 
-    private void uploadLocalData() {
 
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-        OneTimeWorkRequest respondRequest =
-                new OneTimeWorkRequest.Builder(SampleWorker.class)
-//                        .setInputData(createInputData(idnumber, String.valueOf(tracker_id), type, activity_string))
-                        .setConstraints(constraints)
-                        .build();
-        WorkManager workManager = WorkManager.getInstance(this);
-        workManager.beginUniqueWork(
-                "tracker_id",
-                ExistingWorkPolicy.KEEP,
-                respondRequest).enqueue();
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (receiver != null) {
+            unregisterReceiver(receiver);
+        }
     }
 
     private void startTrackerService() {
@@ -102,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestRuntimePermission() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.READ_SMS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS},
+                new String[]{Manifest.permission.READ_SMS, Manifest.permission.ACCESS_FINE_LOCATION},
                 REQUEST_PERMISSIONS_REQUEST_CODE);
     }
 

@@ -28,6 +28,32 @@ public class Repository {
         new InsertMultipleSmsDbAsync(smsDao).execute(smsEntities);
     }
 
+    public void updateAllToSynced() {
+
+        new updateAllSynced(smsDao).execute();
+    }
+
+    private class updateAllSynced extends AsyncTask<List<SmsEntity>, Void, Void> {
+
+        private SmsDao dataDao;
+
+        updateAllSynced(SmsDao dao) {
+            this.dataDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(List<SmsEntity>... params) {
+            try {
+                dataDao.updateall();
+
+            } catch (Exception e) {
+            }
+
+            return null;
+        }
+
+    }
+
     private class InsertMultipleSmsDbAsync extends AsyncTask<List<SmsEntity>, Void, Void> {
 
         private SmsDao dataDao;

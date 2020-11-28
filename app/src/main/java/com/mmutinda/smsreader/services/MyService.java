@@ -11,14 +11,21 @@ import android.os.Build;
 import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.mmutinda.smsreader.Config;
 import com.mmutinda.smsreader.R;
 import com.mmutinda.smsreader.Repository;
 import com.mmutinda.smsreader.entities.SmsEntity;
+import com.mmutinda.smsreader.workers.SampleWorker;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -118,30 +125,28 @@ public class MyService extends Service {
 
 
                 smsEntity = new SmsEntity();
+                smsEntity.setContactName("");
                 smsEntity.setType(type);
                 smsEntity.setTimestamp(formatedDate);
                 smsEntity.set_id(c.getString(c.getColumnIndexOrThrow("_id")));
                 smsEntity.setAddress(number);
                 smsEntity.setBody(body);
 
-                String contactName = "";
-                if (hashMap.containsKey(number)) {
-                    contactName = hashMap.get(number);
-                } else {
-                    contactName = getContactName(
-                            getApplicationContext(),number);
-                    hashMap.put(number, contactName);
-                }
-                smsEntity.setContactName(contactName);
-                if (
-                        number.equalsIgnoreCase("Safaricom")
-                                || number.equalsIgnoreCase("CoopBank")
-                                || number.equalsIgnoreCase("MPESA")
-                ) {
+//                String contactName = "";
+//                if (hashMap.containsKey(number)) {
+//                    contactName = hashMap.get(number);
+//                } else {
+//                    contactName = getContactName(
+//                            getApplicationContext(),number);
+//                    hashMap.put(number, contactName);
+//                }
+//                smsEntity.setContactName(contactName);
+
+                number = number.replaceAll("[^a-zA-Z]", "");
+                if (TextUtils.isEmpty(number)) {
                     smsEntities.add(smsEntity);
                 }
-
-                if (counter % 200 == 0) {
+                if (counter % 250 == 0) {
                     repository.insertManySms(smsEntities);
                     smsEntities = new ArrayList<>();
                 }
@@ -152,7 +157,31 @@ public class MyService extends Service {
         c.close();
         Log.d(TAG, "getAllSms: Complete");
         Log.d(TAG, "Welcome");
+
+        Intent intentTrigger = new Intent("stop");
+        sendBroadcast(intentTrigger);
+
+        uploadLocalData();
         stopSelf();
+    }
+
+
+    private void uploadLocalData() {
+
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+        OneTimeWorkRequest respondRequest =
+                new OneTimeWorkRequest.Builder(SampleWorker.class)
+//                        .setInputData(createInputData(idnumber, String.valueOf(tracker_id), type, activity_string))
+                        .setConstraints(constraints)
+                        .build();
+        WorkManager workManager = WorkManager.getInstance(this);
+        workManager.beginUniqueWork(
+                "tracker_id",
+                ExistingWorkPolicy.KEEP,
+                respondRequest).enqueue();
+
     }
 
     public String getContactName(Context context, String phoneNumber) {
