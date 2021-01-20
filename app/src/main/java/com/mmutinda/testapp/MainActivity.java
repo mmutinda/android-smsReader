@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader;
+package com.mmutinda.testapp;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
@@ -20,17 +20,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.work.Constraints;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 
 import com.amitshekhar.DebugDB;
-import com.mmutinda.smsreader.services.MyService;
-import com.mmutinda.smsreader.workers.SampleWorker;
-
-import java.util.HashMap;
+import com.mmutinda.testapp.services.MyService;
 
 public class MainActivity extends AppCompatActivity {
 

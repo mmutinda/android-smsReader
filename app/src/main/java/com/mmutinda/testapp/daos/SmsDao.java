@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader.daos;
+package com.mmutinda.testapp.daos;
 
 
 import android.util.Log;
@@ -10,7 +10,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
 
-import com.mmutinda.smsreader.entities.SmsEntity;
+import com.mmutinda.testapp.entities.SmsEntity;
 
 import java.util.List;
 

@@ -1,10 +1,10 @@
-package com.mmutinda.smsreader;
+package com.mmutinda.testapp;
 
 import android.app.Application;
 import android.os.AsyncTask;
 
-import com.mmutinda.smsreader.daos.SmsDao;
-import com.mmutinda.smsreader.entities.SmsEntity;
+import com.mmutinda.testapp.daos.SmsDao;
+import com.mmutinda.testapp.entities.SmsEntity;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader;
+package com.mmutinda.testapp;
 
 
 import android.app.Application;

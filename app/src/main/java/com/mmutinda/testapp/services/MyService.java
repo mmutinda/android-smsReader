@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader.services;
+package com.mmutinda.testapp.services;
 
 import android.app.Notification;
 import android.app.Service;
@@ -21,11 +21,11 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
-import com.mmutinda.smsreader.Config;
-import com.mmutinda.smsreader.R;
-import com.mmutinda.smsreader.Repository;
-import com.mmutinda.smsreader.entities.SmsEntity;
-import com.mmutinda.smsreader.workers.SampleWorker;
+import com.mmutinda.testapp.Config;
+import com.mmutinda.testapp.R;
+import com.mmutinda.testapp.Repository;
+import com.mmutinda.testapp.entities.SmsEntity;
+import com.mmutinda.testapp.workers.SampleWorker;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

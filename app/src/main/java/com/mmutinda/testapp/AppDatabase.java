@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader;
+package com.mmutinda.testapp;
 
 import android.content.Context;
 
@@ -8,8 +8,8 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-import com.mmutinda.smsreader.daos.SmsDao;
-import com.mmutinda.smsreader.entities.SmsEntity;
+import com.mmutinda.testapp.daos.SmsDao;
+import com.mmutinda.testapp.entities.SmsEntity;
 
 @Database(entities = {SmsEntity.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {

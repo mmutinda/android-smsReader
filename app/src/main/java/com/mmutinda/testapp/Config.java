@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader;
+package com.mmutinda.testapp;
 
 public class Config {
     public static final String TRACKER_CHANNEL = "the_channel";

@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader.entities;
+package com.mmutinda.testapp.entities;
 
 
 import androidx.annotation.NonNull;

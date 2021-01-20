@@ -1,4 +1,4 @@
-package com.mmutinda.smsreader.workers;
+package com.mmutinda.testapp.workers;
 
 import android.app.Application;
 import android.content.Context;
@@ -8,9 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.mmutinda.smsreader.Config;
-import com.mmutinda.smsreader.Repository;
-import com.mmutinda.smsreader.entities.SmsEntity;
+import com.mmutinda.testapp.Config;
+import com.mmutinda.testapp.Repository;
+import com.mmutinda.testapp.entities.SmsEntity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
